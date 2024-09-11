@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  usk-train:
+    restart: "no"
+    container_name: usk-train
+    mem_limit: 10G
+    build:
+      context: .
+      dockerfile: Dockerfile
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    image: usk-train:master
+    volumes:
+      - ./:/path_to_data
+    network_mode: host
+    command: python3 core/train.py
+  usk-ws-server:
+    restart: "no"
+    container_name: usk-ws-server
+    mem_limit: 10G
+    build:
+      context: .
+      dockerfile: Dockerfile
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    image: usk-ws-server:master
+    volumes:
+      - ./:/path_to_data
+    network_mode: host
+    command: python3 app/ws_server.py
+  kws-server:
+    container_name: kws-server
+    mem_limit: 10G
+    build:
+      context: .
+      dockerfile: Dockerfile
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    image: kws-server:master
+    command: python3 app/run_kws.py
+    ports:
+      - ${APP_PORT}:${APP_PORT}

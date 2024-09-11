@@ -1,0 +1,81 @@
+general:
+  log_level: "INFO"
+  path: "core/data"
+  train_data_path: "..."
+  test_data_path: "..."
+  ckpt_path: "core/weights"
+  inference_model_path: "..."
+  device: "cuda:1"
+  audio_length: 2  # duration in seconds
+  sample_rate: 16000
+  label_map:
+    "keyword": 0
+    "negative": 1
+    "random_speech": 2
+    "noise": 3
+
+stream:
+  device_id: 0
+  use_int16: false  # whether to use int16 or float32 dtype in audio array
+  keyword_label: 0  # positive class label
+  buffer_size: 0.4  # stream buffer size in seconds
+  window_size: 2  # stream window size in seconds (audio_length)
+  threshold: 0.9  # probability threshold for keyword detecting
+  use_argmax: false  # whether to use argmax or threshold for keyword detecting
+
+train:
+  task_name: "kws"
+  use_ce_loss: true  # whether to use CrossEntropy loss in classification tasks; if false: F1 loss (only for binary)
+  epochs: 30
+  learning_rate: 0.001
+  batch_size: 80
+  val_size: 0.15
+  save_last_ckpt: false  # whether to save model ckpt every epoch
+  save_by_metric: false  # save by f1-score or loss value
+  nn_config:
+    model_type: "tc-resnet"
+    models:
+      cnnt:
+        out_dim: 256
+      ecapa:
+        channels: 64  # default (voice id task and similar): 512
+        pre_emb_size: 64  # default (voice id task and similar): 1536
+        post_emb_size: 64  # default (voice id task and similar): 192
+      m5net:
+        sr: 16000
+        n_channels: 64  # default: 32
+        stride: 16  # default: 16
+      matchbox:
+        res_blocks: 3  # default: 3
+        sub_blocks: 2  # default: 2
+        out_channels: 64  # default: 64
+        out_dim: 32  # default: 2 (eq n_classes)
+      soundnet:
+        ...
+      speaknet:
+        n_filters: 128  # default: 128
+      tc-resnet:
+        multiplier: 1.0  # default: 1.0
+      uit:
+        patch_size: 16  # default: 16
+        patch_stride: 16  # default: 16
+        embed_dim: 128  # default: 128
+        depth: 6  # default: 4 (for xxxs), 6 (for xxs), 12 (for xs)
+        num_heads: 2  # default: 2
+        mlp_ratio: 3.0  # default: 3.0
+        init_bn: true  # default: true
+      voxseg:
+        ...
+    extractor:
+      extractor_type: "mfcc"  # "melspec", "mfcc"
+      use_delta_order: 0  # whether to use derivative (0 - do not use, 1-2 - order)
+      add_channel_dim: false  # [BxFxT] -> [Bx1xFxT]
+      preemphasis: true # whether to use preemphasis (HPF with Q == 6 db/oct)
+      win_length: 0.032  # n_fft and frame length in seconds (sec x sample rate -> samples)
+      hop_length: 0.008  # hop length in seconds (sec x sample rate -> samples)
+      n_coefs: 40  # num of DCT coefs (for mfcc)
+      n_filters: 80  # num of filterbanks (for melspectrogram, mfcc)
+    head:
+      dropout: 0.2
+      layer_norm: true
+      as_classifier: true  # TODO: whether to use in labeled (classification) or unlabeled tasks
