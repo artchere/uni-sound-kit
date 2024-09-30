@@ -89,6 +89,9 @@ class Trainer:
 
         results = {}
 
+        best_model = model
+
+        best_model.to(self.device)
         model.to(self.device)
 
         for epoch in range(n_epochs):
@@ -188,12 +191,14 @@ class Trainer:
                 best_val_loss = avg_val_loss
                 if not self.config["train"]["save_by_metric"]:
                     torch.save(model, best_path)
+                    best_model = model
                     self.logger.info("Saved best model checkpoint by loss value")
 
             if avg_val_f1 > best_val_metric:
                 best_val_metric = avg_val_f1
                 if self.config["train"]["save_by_metric"]:
                     torch.save(model, best_path)
+                    best_model = model
                     self.logger.info("Saved best model checkpoint by F1-score value")
 
             avg_val_total_loss += [avg_val_loss]
@@ -202,12 +207,12 @@ class Trainer:
         # Test block
         test_true = []
         test_pred = []
-        model.eval()
+        best_model.eval()
         with torch.no_grad():
             for x, y in tqdm(test_dataloader):
                 x = x.to(self.device)
                 test_true += [y.cpu().numpy()]
-                test_pred += [model(x).argmax(1).cpu().numpy()]
+                test_pred += [best_model(x).argmax(1).cpu().numpy()]
         test_data = (test_pred, test_true)
 
         self.logger.info("")
