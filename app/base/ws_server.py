@@ -161,9 +161,9 @@ class KWSServer(Server):
 
             audio_buffer = [
                 np.zeros(self.chunk_samples, dtype=self.datatype)
-                for _ in range(collecting_count)
+                for _ in range(collecting_count - 1)
             ]
-            result_buffer = [1 for _ in range(collecting_count - 1)]
+            result_buffer = [1 for _ in range(collecting_count)]
 
             audio_timer = 0
 
